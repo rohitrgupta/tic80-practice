@@ -15,11 +15,30 @@
 
 t=0
 balls = {}
-BALL_START_SPEED = .25
+BALL_START_SPEED = 0.1
 BALL_START_SIZE = 2
 
-table.insert(balls, {x=96, y=24, dx=-BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE})
-table.insert(balls, {x=6, y=4, dx=BALL_START_SPEED, dy=-BALL_START_SPEED, r=BALL_START_SIZE})
+-- table.insert(balls, {x=40, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE})
+--table.insert(balls, {x=43, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=2})
+--table.insert(balls, {x=45, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=3})
+--table.insert(balls, {x=47, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=4})
+table.insert(balls, {x=49, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=5})
+ table.insert(balls, {x=50, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=6})
+--table.insert(balls, {x=51, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=7})
+
+
+--table.insert(balls, {x=63, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=2})
+--table.insert(balls, {x=65, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=3})
+--table.insert(balls, {x=67, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=4})
+-- table.insert(balls, {x=70, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=5})
+-- table.insert(balls, {x=71, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE, c=6})
+
+-- table.insert(balls, {x=50, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE})
+-- table.insert(balls, {x=55, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE})
+-- table.insert(balls, {x=60, y=110, dx=BALL_START_SPEED, dy=BALL_START_SPEED,  r=BALL_START_SIZE})
+
+
+-- table.insert(balls, {x=6, y=4, dx=BALL_START_SPEED, dy=-BALL_START_SPEED, r=BALL_START_SIZE})
 
 
 PADDEL_START_SPEED = 2
@@ -29,6 +48,8 @@ PADDEL_START_Y = 120
 PADDEL_START_X = 60
 
 paddel = {x=PADDEL_START_X, y=PADDEL_START_Y, w=PADDEL_START_SIZE, h=PADDEL_START_HEIGHT, s=PADDEL_START_SPEED}
+
+rect(0,0,136,136,14)
 
 function TIC()
  update()
@@ -59,8 +80,48 @@ end
 
 function move_balls()
 	for i, ball in ipairs(balls) do
+		-- check if ball is colliding with top of the paddel 
+		local old_x=ball.x
+		local old_y=ball.y
 		ball.x=ball.x+ball.dx
 		ball.y=ball.y+ball.dy
+		-- ball is moving down and its bottom will cross the top of the paddel
+		if old_y + ball.r <= paddel.y and ball.y + ball.r >= paddel.y then
+		-- find the x position of the ball when its bottom is at the same y as the top of the paddel
+			intersect_x = old_x + (paddel.y - old_y - ball.r) * ball.dx / ball.dy
+			if intersect_x >= paddel.x - ball.r and intersect_x <= paddel.x + paddel.w + ball.r then
+				ball.dy=-ball.dy
+				remaining_y = ball.y + ball.dy - paddel.y - ball.r
+				ball.y=paddel.y+remaining_y
+			end
+		end
+		-- ball is moving right and its right will cross the left of the paddel
+		--rect(0,0,136,8,15)
+		local l= old_x + ball.r<=paddel.x
+		if l then
+		 rect(0,0,50,8, 15)
+			print(t .. " ".. old_x, 0,0,12)
+		end
+		local r = ball.x + ball.r >= paddel.x
+		--trace("o"..old_x + ball.r)
+		--trace(l)
+		--trace(r)
+		if not r then
+			rect(50,0,100,8, 15)
+			print(t.. " "..ball.x, 50, 0,12)
+		end
+		if old_x + ball.r <= paddel.x and ball.x + ball.r >= paddel.x then
+			print("crossing left"..t, 0,8,12)
+			intersect_y = old_y + (paddel.x - old_x - ball.r) * ball.dy / ball.dx
+			if intersect_y >= paddel.y - ball.r and intersect_y <= paddel.y + paddel.h + ball.r then
+				print("collide "..t, 0,16,12)
+				ball.dx=-ball.dx
+				remaining_x = ball.x + ball.r - paddel.x
+				ball.x=paddel.x-remaining_x
+			end
+		end
+
+
 		if ball.x<ball.r then
 			ball.x=ball.r
 			ball.dx=-ball.dx
@@ -79,17 +140,12 @@ function move_balls()
 			-- ball.y=136
 			-- ball.dy=-ball.dy
 		end
-		if ball.y+ball.r>paddel.y and ball.y<paddel.y+paddel.h and ball.x+ball.r>paddel.x and ball.x<paddel.x+paddel.w then
-			ball.dy=-ball.dy
-			-- move the ball above the paddel to avoid multiple collision
-			ball.y=paddel.y-ball.r
-		end
 	end
 end
 
 function draw()
-	cls(13)
-	rect(0,0,136,136,14)
+	-- cls(13)
+	-- rect(0,0,136,136,14)
 	draw_balls()
 	draw_paddel()
 	-- print("balls: "..#balls, 2, 2, 12)
@@ -97,13 +153,14 @@ end
 
 function draw_paddel()
 	rect(paddel.x, paddel.y, paddel.w, paddel.h, 12)
-	circ(paddel.x, paddel.y+2, 2, 12)
-	circ(paddel.x+paddel.w, paddel.y+2, 2, 12)
+	-- circ(paddel.x, paddel.y+2, 2, 12)
+	-- circ(paddel.x+paddel.w, paddel.y+2, 2, 12)
 end
 function draw_balls()
 	for i, ball in ipairs(balls) do
 		-- spr(0, ball.x, ball.y, 0)
-		circ(ball.x, ball.y, ball.r, 12)
+		 circ(ball.x, ball.y, ball.r, ball.c)
+		--pix(ball.x, ball.y, ball.c)
 	end
 end
 -- <TILES>
